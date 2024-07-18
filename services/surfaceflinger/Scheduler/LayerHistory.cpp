@@ -114,7 +114,16 @@ void LayerHistory::registerLayer(Layer* layer, bool contentDetectionEnabled,
     std::lock_guard lock(mLock);
     LOG_ALWAYS_FATAL_IF(findLayer(layer->getSequence()).first != LayerStatus::NotFound,
                         "%s already registered", layer->getName().c_str());
+
     LayerVoteType type = getVoteType(frameRateCompatibility, contentDetectionEnabled);
+
+    using WindowType = gui::WindowInfo::Type;
+    const auto windowType = layer->getWindowType();
+
+    if (windowType == WindowType::NOTIFICATION_SHADE) {
+        type = LayerHistory::LayerVoteType::Max;
+    }
+
     auto info = std::make_unique<LayerInfo>(layer->getName(), layer->getOwnerUid(), type);
 
     // The layer can be placed on either map, it is assumed that partitionLayers() will be called
